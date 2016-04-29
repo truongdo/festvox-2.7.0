@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #####################################################-*-mode:shell-script-*-
 ##                                                                       ##
 ##                   Carnegie Mellon University and                      ##
@@ -42,7 +42,7 @@ LANG=C; export LANG
 if [ $# = 0 ]
 then
    echo "Make pm labels for viewing in emulabel or similar"
-   echo "Usage:  bin/make_pmlab_pm pm/*.pm"
+   echo "Usage:  bin/make_pmlab_pm pm utts.data [nthread (default 1)]"
    echo "Will create pm_lab/*.lab"
    exit 1
 fi
@@ -60,17 +60,33 @@ then
    exit
 fi
 
-for i in $* 
+fileroots=$(cat $2 | sed '/^;/d' |awk '{sub(/^[\(]/, "") ; print $1};' ) #don't read lines starting with ';' + delete initial '('
+nthread=1
+thread_count=0
+if [[ ! -z $3 ]]; then
+  nthread=$3 
+fi
+
+for i in $fileroots
 do
-   echo $i
-   fname=`basename $i .pm`
-   awk '{if ($1 == "EST_Header_End")
-         {
-            post_header = 1;
-            printf("#\n");
-         }
-         else if (post_header == 1)
-         {
-	     printf("%f 125 %f\n",$1,$2);
-         }}' $i >pm_lab/$fname.lab
+   fileroots_path=$1'/'$i'.pm'
+   fname=`basename $fileroots_path .pm`
+   echo $fname
+   ((thread_count++))
+   if [[ $thread_count == $nthread ]]; then
+     wait
+     thread_count=0
+   fi
+   (
+     fname=`basename $i .pm`
+     awk '{if ($1 == "EST_Header_End")
+           {
+              post_header = 1;
+              printf("#\n");
+           }
+           else if (post_header == 1)
+           {
+           printf("%f 125 %f\n",$1,$2);
+           }}' $fileroots_path >pm_lab/$fname.lab
+   ) &
 done
