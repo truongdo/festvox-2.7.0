@@ -71,7 +71,7 @@ include $(ESTDIR)/config/rules/defaults.mak
 include $(ESTDIR)/config/rules/compile_options.mak
 
 ESTINC=-I$(ESTDIR)/include
-ESTLIBS=-L$(ESTDIR)/lib -lestools -lestbase -leststring $(COMPILERLIBS) -lm $(OS_LIBS)
+ESTLIBS=-L$(ESTDIR)/lib -lestools -lestbase -leststring $(COMPILERLIBS) -lm $(OS_LIBS) -lasound
 
 CXXFLAGS += -O2 $(ESTINC)
 
